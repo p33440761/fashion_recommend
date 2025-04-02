@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Fashion Advisor - 你的時尚AI顧問</title>
+    <meta name="description" content="上傳你的穿搭照片，你的時尚AI顧問將給予專業評價並提供個性化建議，讓你的風格更加出眾！">
+    <!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/3.3.3/tailwind.min.css" rel="stylesheet"> -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            100: '#E6EEF9',
+                            200: '#CCDDF3',
+                            300: '#99BBE7',
+                            400: '#6699DB',
+                            500: '#3377CF',
+                            600: '#0055C3',
+                            700: '#004499',
+                            800: '#003370',
+                            900: '#002247',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 自定义滚动条样式 */
+        :root {
+            color-scheme: light dark;
+        }
+        
+        /* 滚动条轨道 */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        /* 滚动条滑块 */
+        ::-webkit-scrollbar-thumb {
+            background-color: rgb(51, 119, 207, 0.5);
+            border-radius: 6px;
+            border: 3px solid transparent;
+            background-clip: content-box;
+        }
+        
+        /* 深色模式下的滚动条滑块 */
+        .dark ::-webkit-scrollbar-thumb {
+            background-color: rgb(51, 119, 207, 0.3);
+        }
+        
+        /* 滚动条轨道 */
+        ::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
+        
+        /* 深色模式下的滚动条轨道 */
+        .dark ::-webkit-scrollbar-track {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased transition-colors duration-300 dark:bg-gray-900 dark:text-white bg-gray-50 text-gray-800">
+    <!-- 背景動畫容器 -->
+    <div id="p5-container" class="fixed top-0 left-0 w-full h-full -z-10 opacity-25 dark:opacity-30"></div>
+
+    <!-- 導航欄 -->
+    <nav class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-gray-900/80 shadow-md border-b border-primary-500">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="#" class="flex items-center space-x-2">
+                <span class="text-2xl font-bold">你的時尚<span class="text-primary-600">顧問</span> <span class="text-xs font-normal px-1 py-0.5 bg-primary-100 text-primary-600 rounded">AI</span></span>
+            </a>
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容 -->
+    <main class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- 英雄區塊 -->
+        <section id="upload-section" class="py-10 md:py-16 text-center relative">
+            <div class="max-w-3xl mx-auto">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4 leading-tight">
+                    你的時尚 AI 顧問
+                </h1>
+                <h2 class="text-3xl md:text-4xl font-bold mb-6 text-primary-600">
+                    AI 說話很直，但都是真話
+                </h2>
+                <p class="text-lg mb-8 text-gray-400">
+                    上傳照片，AI 幫你開箱你的造型包裹：時尚？災難？讓我們 AI 來評評理
+                </p>
+                
+                <!-- 上傳區域 -->
+                <div class="mt-8 mb-12">
+                    <div class="upload-container mx-auto max-w-md p-6 border-2 border-dashed border-primary-300 dark:border-primary-700 rounded-lg bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm transition-all hover:border-primary-500 dark:hover:border-primary-500">
+                        <div class="text-center">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-primary-500 mb-4"></i>
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">上傳穿搭照片</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">支援 JPG、PNG 檔案，大小不超過 10MB</p>
+                            
+                            <label for="file-upload" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors cursor-pointer">
+                                <i class="fas fa-upload mr-2"></i>上傳穿搭照片
+                            </label>
+                            <input id="file-upload" name="file-upload" type="file" accept="image/*" class="sr-only">
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <div class="inline-flex items-center px-4 py-2 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-300">
+                            <i class="far fa-clock mr-2"></i>
+                            <span>今日剩餘次數 <span class="font-bold text-primary-600 dark:text-primary-400">10</span>/10</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 漂浮背景元素 -->
+            <div class="absolute top-20 -left-20 w-40 h-40 bg-primary-100 dark:bg-primary-900/30 rounded-full filter blur-xl opacity-70 animate-float"></div>
+            <div class="absolute bottom-10 -right-10 w-60 h-60 bg-primary-100 dark:bg-primary-900/30 rounded-full filter blur-xl opacity-70 animate-float-delay"></div>
+        </section>
+        
+        <!-- 示例結果區塊 -->
+        <section id="score-section" class="py-12 md:py-16 bg-primary-50 dark:bg-primary-900/10 rounded-2xl p-6 mb-12 hidden">
+            <h2 class="text-2xl md:text-3xl font-bold mb-10 text-center">你的穿搭評分</h2>
+            
+            <div class="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                <div class="md:flex">
+                    <div class="md:w-1/2">
+                        <img id="user-image" src="/api/placeholder/400/500" alt="你的穿搭照" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-6 md:w-1/2">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center mb-4">
+                            <span class="text-2xl font-bold mr-2">穿搭評分:</span>
+                            <div class="flex items-center mt-1 sm:mt-0">
+                                <span id="style-score" class="text-3xl font-bold text-primary-600"></span>
+                                <span id="style-level" class="ml-2 text-sm font-medium px-3 py-1 bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 rounded-full"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h4 class="font-bold mb-2">評價分析</h4>
+                            <p id="style-analysis" class="text-gray-600 dark:text-gray-400"></p>
+                        </div>
+                        
+                        <div class="bg-primary-50 dark:bg-primary-900/20 p-4 rounded-lg">
+                            <h4 class="font-bold mb-2 text-primary-700 dark:text-primary-300">穿搭建議</h4>
+                            <p id="style-suggestion" class="text-gray-700 dark:text-gray-300"></p>
+                        </div>
+                        
+                        <div class="mt-6 flex flex-col sm:flex-row gap-2 sm:space-x-2 sm:gap-0">
+                            <button id="show-ai-suggestion" class="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors">
+                                <i class="fas fa-image mr-2"></i>查看穿搭建議
+                            </button>
+                            <button class="mt-2 sm:mt-0 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                <i class="fas fa-share-alt mr-2"></i>分享
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- 互動式穿搭建議展示 -->
+        <section id="ai-suggestion-section" class="py-12 md:py-16 hidden">
+            <h2 class="text-2xl md:text-3xl font-bold mb-10 text-center">AI生成穿搭建議</h2>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                <div class="mb-8">
+                    <h3 class="text-xl font-bold mb-4">最佳穿搭選擇</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="relative aspect-[4/5] overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700">
+                            <img id="ai-outfit-image" src="" alt="建議穿搭" class="w-full h-full object-cover">
+                        </div>
+                        <div class="md:col-span-2">
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <!-- 穿搭單品將在這裡動態生成 -->
+                            </div>
+                            
+                            <div class="mt-6">
+                                <h4 class="font-bold mb-2">穿搭要點</h4>
+                                <ul class="list-disc pl-5 text-gray-700 dark:text-gray-300 space-y-2">
+                                    <!-- 動態生成穿搭要點 -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <div class="flex flex-col sm:flex-row justify-center gap-4 mt-6">
+                        <button id="refresh-suggestion" class="px-6 py-3 border-2 border-primary-600 text-primary-600 dark:text-primary-400 dark:border-primary-400 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors">
+                            <i class="fas fa-sync-alt mr-2"></i>換個穿搭建議
+                        </button>
+                        <button id="save-suggestion" class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                            <i class="fas fa-download mr-2"></i>儲存穿搭建議
+                        </button>
+                        <button id="start-over" class="px-6 py-3 border-2 border-primary-600 text-primary-600 dark:text-primary-400 dark:border-primary-400 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors">
+                            <i class="fas fa-redo mr-2"></i>再來一次
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+
+    </main>
+    
+    <!-- 頁腳 -->
+    <footer class="bg-gray-100 dark:bg-gray-800/50 py-8 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="text-center">
+                <p class="text-gray-600 dark:text-gray-400">© 2025 你的時尚AI顧問 | 最敢說真話的穿搭評論家</p>
+                <div class="flex justify-center space-x-4 mt-4">
+                    <a href="#" class="text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400">
+                        <i class="fab fa-threads"></i>
+                    </a>
+                    <a href="#" class="text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400">
+                        <i class="fab fa-facebook"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- 模態框：穿搭分析結果 -->
+    <div id="result-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">你的穿搭分析結果</h2>
+                    <button id="close-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div id="result-content">
+                    <!-- 動態內容將通過JavaScript插入 -->
+                </div>
+                
+                <div class="mt-8 flex justify-end space-x-4">
+                    <button id="share-result" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-share-alt mr-2"></i>分享到社交媒體
+                    </button>
+                    <button id="save-result" class="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 transition-colors">
+                        <i class="fas fa-download mr-2"></i>儲存為圖片
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
